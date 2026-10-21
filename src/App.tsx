@@ -3,10 +3,10 @@ import './App.css'
 import { useEffect, useState } from 'react'
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion'
 import {
-  Bell, CalendarDays, ChevronRight, CloudMoon, CloudSun, Cpu, Eye, EyeOff,
+  Bell, CalendarDays, ChevronRight, CloudMoon, CloudSun, CloudRain, Droplets, Leaf, MapPin, Snowflake, Sun, Cpu, Eye, EyeOff,
   Fingerprint, Headphones, MessageCircle, Monitor, Moon,
   Network, Pause, Play, Power, Radio, RefreshCw, ShieldCheck, SkipBack,
-  SkipForward, Smartphone, Sun, Thermometer, UserRound, Users, Wind, X,
+  SkipForward, Smartphone, Thermometer, UserRound, Users, Wind, X,
   CheckCircle2, Clock3, Laptop, HardDrive, Wifi,
 } from 'lucide-react'
 
@@ -89,20 +89,124 @@ function MountainWallpaper() {
 }
 
 function WeatherCard() {
+  const now = useClock()
+  const hour = now.getHours()
+
+  // Demo readings until a real weather API is connected.
+  const temperature = 24
+  const wind = 8
+  const humidity = 64
+
+  // Weather conditions take priority over the time of day.
+  const isRainy = false
+  const isSnowy = temperature <= 2
+  const isCold = temperature > 2 && temperature <= 16
+
+  let period = 'night'
+  let label = 'Clear night'
+  let background = 'weather-night'
+  let WeatherIcon = CloudMoon
+
+  if (isRainy) {
+    period = 'rain'
+    label = 'Rainy conditions'
+    background = 'weather-rain'
+    WeatherIcon = CloudRain
+  } else if (isSnowy) {
+    period = 'snow'
+    label = 'Snow and freezing conditions'
+    background = 'weather-snow'
+    WeatherIcon = Snowflake
+  } else if (isCold) {
+    period = 'cold'
+    label = 'Cool weather'
+    background = 'weather-cold'
+    WeatherIcon = Leaf
+  } else if (hour >= 6 && hour < 10) {
+    period = 'sunrise'
+    label = 'Clear morning'
+    background = 'weather-sunrise'
+    WeatherIcon = Sun
+  } else if (hour >= 10 && hour < 17) {
+    period = 'midday'
+    label = 'Sunny'
+    background = 'weather-midday'
+    WeatherIcon = Sun
+  } else if (hour >= 17 && hour < 19) {
+    period = 'sunset'
+    label = 'Sunset'
+    background = 'weather-sunset'
+    WeatherIcon = CloudSun
+  }
+
+  const time = now.toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: false,
+  })
+
   return (
-    <GlassCard>
-      <SectionHeading icon={CloudSun} title="Weather" meta="SIMULATED" />
-      <div className="weather-location">Davangere, Karnataka</div>
-      <div className="weather-main">
-        <div><div className="temperature">24<span>°</span></div><div className="muted">Partly cloudy</div></div>
-        <div className="weather-art"><CloudMoon size={43} strokeWidth={1.15} /></div>
+    <motion.section
+      key={period}
+      className={`weather-card-liquid ${background}`}
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.55, ease: 'easeOut' }}
+      aria-label="Weather overview"
+    >
+      <div className="weather-photo" aria-hidden="true" />
+      <div className="weather-glass-shade" aria-hidden="true" />
+
+      <header className="weather-liquid-header">
+        <div className="weather-place">
+          <MapPin size={15} strokeWidth={1.7} />
+          <div>
+            <strong>Davangere</strong>
+            <span>Karnataka, India</span>
+          </div>
+        </div>
+        <span className="weather-clock">{time}</span>
+      </header>
+
+      <div className="weather-liquid-main">
+        <div>
+          <div className="weather-temperature">
+            <span>{temperature}°</span>
+          </div>
+          <div className="weather-condition">{label}</div>
+        </div>
+        <motion.div
+          className="weather-condition-icon"
+          animate={{ y: [0, -3, 0], rotate: period === 'sunrise' || period === 'midday' ? [0, 5, 0] : 0 }}
+          transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+        >
+          <WeatherIcon size={48} strokeWidth={1.25} />
+        </motion.div>
       </div>
-      <div className="weather-stats">
-        <div><span><Wind size={13}/> Wind</span><b>8 km/h</b></div>
-        <div><span><Radio size={13}/> Humidity</span><b>64%</b></div>
-        <div><span><Sun size={13}/> H / L</span><b>27° / 19°</b></div>
+
+      <div className="weather-liquid-metrics">
+        <div className="weather-metric">
+          <Wind size={23} strokeWidth={1.5} />
+          <div>
+            <strong>{wind} <small>km/h</small></strong>
+            <span>Wind speed</span>
+          </div>
+        </div>
+        <div className="weather-metric">
+          <Droplets size={23} strokeWidth={1.5} />
+          <div>
+            <strong>{humidity}<small>%</small></strong>
+            <span>Humidity</span>
+          </div>
+        </div>
       </div>
-    </GlassCard>
+
+      <footer className="weather-liquid-footer">
+        <span className="weather-live-dot" />
+        <span>WEATHER OVERVIEW</span>
+        <span className="weather-period">{period.toUpperCase()}</span>
+      </footer>
+    </motion.section>
   )
 }
 
